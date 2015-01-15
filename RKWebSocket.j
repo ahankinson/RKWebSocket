@@ -110,9 +110,6 @@ var RKWebSocketDelegate_socketDidOpen              = 1 << 0,
 {
     if (self = [super init])
     {
-        CPLogRegister(CPLogConsole, "debug");
-        CPLog.debug(@"Initializing RKWebSocket");
-
         _socketUrl = aUrl;
         _shouldReconnect = shouldReconnect;
         _reconnectInterval = 5; // try to reconnect every five seconds
@@ -130,7 +127,6 @@ var RKWebSocketDelegate_socketDidOpen              = 1 << 0,
          */
         _ws.onopen = function()
         {
-            CPLog.debug(@"Web Socket Connection Opened");
             _missedHeartbeats = 0;
 
             if (RKWebSocketDelegate_socketDidOpen & _implementedDelegateMethods)
@@ -139,8 +135,6 @@ var RKWebSocketDelegate_socketDidOpen              = 1 << 0,
             // if it was reconnecting, we're now connected again so reset everything;
             if (_isReconnecting)
             {
-                CPLog.debug(@"Successfully reconnected.");
-
                 _missedReconnects = 0;
                 _isReconnecting = NO;
                 [_reconnectTimer invalidate];
@@ -150,7 +144,6 @@ var RKWebSocketDelegate_socketDidOpen              = 1 << 0,
 
         _ws.onclose = function(event)
         {
-            CPLog.debug(@"Web Socket Connection Closed");
             [_heartbeatTimer invalidate];
 
             if (RKWebSocketDelegate_socket_didCloseWithMessage & _implementedDelegateMethods)
@@ -158,8 +151,6 @@ var RKWebSocketDelegate_socketDidOpen              = 1 << 0,
 
             if (_shouldReconnect)
             {
-                CPLog.debug("Closed. Attempting to reconnect...");
-
                 var _reconnectCallback = function ()
                 {
                     try
@@ -168,8 +159,6 @@ var RKWebSocketDelegate_socketDidOpen              = 1 << 0,
                     }
                     catch (error)
                     {
-                        CPLog.debug(@"Caught error in trying to reconnect.");
-
                         _missedReconnects++;
                         if (_missedReconnects > _reconnectAttempts)
                         {
@@ -196,19 +185,16 @@ var RKWebSocketDelegate_socketDidOpen              = 1 << 0,
             // we don't need to alert the delegate if the message is simply a heartbeat.
             if (event.data === _heartbeatMessage)
             {
-                CPLog.debug(@"Web Socket Connection Received Heartbeat");
                 _missedHeartbeats = 0;
                 return;
             }
 
-            CPLog.debug(@"Web Socket Connection Received Message");
             if (RKWebSocketDelegate_socket_didReceiveMessage & _implementedDelegateMethods)
                 [_delegate socket:self didReceiveMessage:event.data];
         }
 
         _ws.onerror = function(event)
         {
-            CPLog.debug(@"Web Socket Connection Received Error");
             // TODO: Convert event.data to a CPError
 
             if (RKWebSocketDelegate_socket_didReceiveError & _implementedDelegateMethods)
